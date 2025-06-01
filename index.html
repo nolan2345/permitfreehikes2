@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Top 10 Permit-Free Hikes in California</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" 
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" 
+          crossorigin=""/>
+    
+    <!-- Leaflet JavaScript -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" 
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" 
+            crossorigin=""></script>
+    
+    <!-- Custom styles -->
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            background-color: #f9f6f0;
+            color: #333;
+        }
+        
+        header {
+            background-color: #2e5d34;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+        
+        h1 {
+            margin: 0;
+            font-size: 2.2rem;
+        }
+        
+        .subtitle {
+            font-style: italic;
+            margin-top: 0.5rem;
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .container {
+            display: flex;
+            flex: 1;
+        }
+        
+        .sidebar {
+            width: 300px;
+            background-color: #f0f7e9;
+            padding: 1rem;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+            overflow-y: auto;
+        }
+        
+        .permit-info {
+            background-color: #e9f0e5;
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+            border-left: 4px solid #2e5d34;
+            font-size: 0.9rem;
+        }
+        
+        .trail-list {
+            list-style-type: none;
+            padding: 0;
+        }
+        
+        .trail-item {
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            background-color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-left: 4px solid #7b9e7b;
+        }
+        
+        .trail-item:hover {
+            background-color: #e8f0e8;
+            transform: translateX(5px);
+        }
+        
+        .trail-name {
+            font-weight: bold;
+            color: #2e5d34;
+        }
+        
+        .trail-location {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 3px;
+        }
+        
+        .map-container {
+            flex: 1;
+        }
+        
+        #map {
+            height: 100%;
+        }
+        
+        .leaflet-popup-content {
+            width: 250px !important;
+        }
+        
+        .trail-popup h3 {
+            margin-top: 0;
+            color: #2e5d34;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        
+        .trail-popup p {
+            margin: 5px 0;
+        }
+        
+        .trail-stat {
+            font-weight: bold;
+        }
+        
+        footer {
+            background-color: #2e5d34;
+            color: white;
+            text-align: center;
+            padding: 1rem;
+            font-size: 0.9rem;
+        }
+        
+        @media screen and (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                max-height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Top 10 Permit-Free Hikes in California</h1>
+        <div class="subtitle">Explore the Golden State's beautiful wilderness without permits</div>
+    </header>
+    
+    <div class="container">
+        <aside class="sidebar">
+            <div class="permit-info">
+                <h3>What are Permit-Free Hikes?</h3>
+                <p>Permit-free hikes are trails where no advance wilderness permit is required for day hiking. 
+                   These accessible trails allow spontaneous adventures without the need to secure reservations 
+                   or permits ahead of time, making them perfect for last-minute excursions.</p>
+                <p>Note that some areas may still require parking passes, and regulations can change seasonally.
+                   Always check current conditions before setting out.</p>
+            </div>
+            
+            <h3>Trail List</h3>
+            <ul class="trail-list">
+                <li class="trail-item" onclick="flyToTrail(0)">
+                    <div class="trail-name">Sespe Hot Springs Trail</div>
+                    <div class="trail-location">Ojai, CA</div>
+                </li>
+                <li class="trail-item" onclick="flyToTrail(1)">
+                    <div class="trail-name">Jennie and Weaver Lakes Loop</div>
+                    <div class="trail-location">Hume, CA</div>
+                </li>
+                <li class="trail-item" onclick="flyToTrail(2)">
+                    <div class="trail-name">Granite Chief Trail</div>
+                    <div class="trail-location">Olympic Valley/Tahoe, CA</div>
+                </li>
+                <li class="trail-item" onclick="flyToTrail(3)">
+                    <div class="trail-name">Torrey Pines State Reserve Trails</div>
+                    <div class="trail-location">San Diego, CA</div>
+                </li>
+                <li class="trail-item" onclick="flyToTrail(4)">
+                    <div class="trail-name">Convict Lake Loop</div>
+                    <div class="trail-location">Mammoth Lakes, CA</div>
+                </li>
+                <li class="trail-item" onclick="flyToTrail(5)">
+                    <div class="trail-name">Heart Lake Trail</div>
+                    <div class="trail-location">Shingletown, CA</div>
+                </li>
+                <li class="trail-item" onclick="flyToTrail(6)">
+                    <div class="trail-name">Lands End Trail</div>
+                    <div class="trail-location">San Francisco, CA</div>
+                </li>
+                <li class="trail-item" onclick="flyToTrail(7)">
+                    <div class="trail-name">Moro Rock Trail</div>
+                    <div class="trail-location">Sequoia National Park, CA</div>
+                </li>
+                <li class="trail-item" onclick="flyToTrail(8)">
+                    <div class="trail-name">Golden Trout Wilderness</div>
+                    <div class="trail-location">Lone Pine, CA</div>
+                </li>
+                <li class="trail-item" onclick="flyToTrail(9)">
+                    <div class="trail-name">Tahoe Rim Trail</div>
+                    <div class="trail-location">Lake Tahoe, CA/NV</div>
+                </li>
+            </ul>
+        </aside>
+        
+        <div class="map-container">
+            <div id="map"></div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>© 2025 California Trail Explorer | Always practice Leave No Trace principles when hiking</p>
+    </footer>
+    
+    <script>
+        // Initialize the map centered on California
+        const map = L.map('map').setView([37.5, -119.5], 6);
+        
+        // Add a beautiful outdoors-themed tile layer
+        L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenTopoMap contributors',
+            maxZoom: 17
+        }).addTo(map);
+        
+        // Trail data
+        const trails = [
+            {
+                name: "Sespe Hot Springs Trail",
+                coords: [34.5947, -118.9990],
+                distance: "30.9 miles round trip",
+                elevation: "3,667 ft elevation gain",
+                difficulty: "Challenging",
+                description: "A beautiful but demanding trek through the Sespe Wilderness to natural hot springs. The trail follows Sespe Creek through rugged terrain, offering solitude and stunning vistas. Perfect for experienced hikers seeking a multi-day adventure."
+            },
+            {
+                name: "Jennie and Weaver Lakes Loop",
+                coords: [36.7146, -118.8584],
+                distance: "16.0 miles loop trail",
+                elevation: "4,924 ft elevation gain",
+                difficulty: "Challenging",
+                description: "This scenic loop in Jennie Lakes Wilderness connects two alpine lakes surrounded by pine forests. Features excellent swimming opportunities, mountain views, and plenty of backcountry camping spots. Popular for weekend backpacking trips."
+            },
+            {
+                name: "Granite Chief Trail",
+                coords: [39.1982, -120.2869],
+                distance: "6.5 miles",
+                elevation: "2,100 ft elevation gain",
+                difficulty: "Moderate to difficult",
+                description: "Starting near Olympic Valley, this trail climbs through forests to alpine meadows with spectacular views of Lake Tahoe. Wildflowers abound in summer, while fall brings vibrant colors. Connects to the Pacific Crest Trail."
+            },
+            {
+                name: "Torrey Pines State Reserve Trails",
+                coords: [32.9218, -117.2497],
+                distance: "2.3 miles loop",
+                elevation: "341 ft elevation gain",
+                difficulty: "Easy to moderate",
+                description: "Coastal trail system featuring rare Torrey pine trees, dramatic sandstone cliffs, and panoramic Pacific Ocean views. Multiple interconnected trails wind through unique coastal habitat with opportunities to see diverse wildlife and native plants."
+            },
+            {
+                name: "Convict Lake Loop",
+                coords: [37.5907, -118.8620],
+                distance: "2.5 miles",
+                elevation: "170 ft elevation gain",
+                difficulty: "Easy",
+                description: "A picturesque trail circling the crystal-clear waters of Convict Lake, set against the dramatic backdrop of Mount Morrison. Accessible year-round, this family-friendly trail offers stunning mountain reflections and fishing opportunities."
+            },
+            {
+                name: "Heart Lake Trail",
+                coords: [40.4519, -121.5745],
+                distance: "4.5 miles",
+                elevation: "1,017 ft elevation gain",
+                difficulty: "Moderate",
+                description: "Located in Lassen National Forest, this trail leads to a charming heart-shaped alpine lake. The path weaves through meadows and conifer forests, offering views of Lassen Peak along the way. Beautiful wildflowers bloom in summer."
+            },
+            {
+                name: "Lands End Trail",
+                coords: [37.7877, -122.5055],
+                distance: "3.4 miles loop",
+                elevation: "554 ft elevation gain",
+                difficulty: "Moderate",
+                description: "A scenic coastal trail at the northwestern corner of San Francisco with spectacular views of the Golden Gate Bridge, Marin Headlands, and Pacific Ocean. Features historic shipwreck sites, wildflower-covered hillsides, and the famous Sutro Baths ruins."
+            },
+            {
+                name: "Moro Rock Trail",
+                coords: [36.5547, -118.7661],
+                distance: "0.5 miles",
+                elevation: "300 ft elevation gain",
+                difficulty: "Moderate",
+                description: "A short but steep trail in Sequoia National Park leading to a granite dome with panoramic views of the Great Western Divide and Sierra Nevada mountains. The trail consists of 400 stairs cut into the rock face, making for an exhilarating climb."
+            },
+            {
+                name: "Golden Trout Wilderness (Cottonwood Lakes Trail)",
+                coords: [36.4499, -118.1700],
+                distance: "13 miles out and back",
+                elevation: "1,380 ft elevation gain",
+                difficulty: "Moderate",
+                description: "Starting from Horseshoe Meadows near Lone Pine, this trail leads to a series of alpine lakes in the high Sierra. The area is known for its native golden trout, stunning mountain scenery, and excellent backcountry camping opportunities."
+            },
+            {
+                name: "Tahoe Rim Trail (Tahoe Meadows to Spooner Summit)",
+                coords: [39.2650, -119.9283],
+                distance: "22.7 miles",
+                elevation: "3,303 ft elevation gain",
+                difficulty: "Moderate to difficult",
+                description: "A spectacular section of the 165-mile Tahoe Rim Trail that circles Lake Tahoe. This segment offers incredible views of the lake, traverses pine forests and flowering meadows, and features relatively gradual elevation changes, making it popular for multi-day hikes."
+            }
+        ];
+        
+        // Custom icon for trail markers
+        const trailIcon = L.icon({
+            iconUrl: 'https://cdn-icons-png.flaticon.com/512/9356/9356330.png',
+            iconSize: [32, 32],
+            iconAnchor: [16, 32],
+            popupAnchor: [0, -32]
+        });
+        
+        // Add trail markers to the map
+        const markers = [];
+        trails.forEach(trail => {
+            const marker = L.marker(trail.coords, {icon: trailIcon}).addTo(map);
+            
+            const popupContent = `
+                <div class="trail-popup">
+                    <h3>${trail.name}</h3>
+                    <p><span class="trail-stat">Distance:</span> ${trail.distance}</p>
+                    <p><span class="trail-stat">Elevation Gain:</span> ${trail.elevation}</p>
+                    <p><span class="trail-stat">Difficulty:</span> ${trail.difficulty}</p>
+                    <p>${trail.description}</p>
+                </div>
+            `;
+            
+            marker.bindPopup(popupContent);
+            
+            // Show popup on hover
+            marker.on('mouseover', function(e) {
+                this.openPopup();
+            });
+            
+            markers.push(marker);
+        });
+        
+        // Function to fly to a specific trail
+        function flyToTrail(index) {
+            map.flyTo(trails[index].coords, 12);
+            markers[index].openPopup();
+        }
+    </script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015" integrity="sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ==" data-cf-beacon='{"rayId":"948a47efbe68d7a8","serverTiming":{"name":{"cfExtPri":true,"cfEdge":true,"cfOrigin":true,"cfL4":true,"cfSpeedBrain":true,"cfCacheStatus":true}},"version":"2025.5.0","token":"4edd5f8ec12a48cfa682ab8261b80a79"}' crossorigin="anonymous"></script>
+</body>
+</html>
