@@ -51,6 +51,7 @@
         .container {
             display: flex;
             flex: 1;
+            min-height: 0; /* Important for flex children */
         }
         
         .sidebar {
@@ -59,6 +60,8 @@
             padding: 1rem;
             box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
             overflow-y: auto;
+            flex-shrink: 0; /* Prevent sidebar from shrinking */
+            z-index: 1000; /* Ensure sidebar is above map on mobile */
         }
         
         .permit-info {
@@ -103,10 +106,14 @@
         
         .map-container {
             flex: 1;
+            position: relative;
+            min-height: 500px; /* Ensure minimum height on all devices */
         }
         
         #map {
             height: 100%;
+            width: 100%;
+            min-height: 500px; /* Ensure map has minimum height */
         }
         
         .leaflet-popup-content {
@@ -134,16 +141,118 @@
             text-align: center;
             padding: 1rem;
             font-size: 0.9rem;
+            flex-shrink: 0; /* Prevent footer from shrinking */
+        }
+
+        .mobile-toggle {
+            display: none;
         }
         
+        /* Mobile-specific styles */
         @media screen and (max-width: 768px) {
+            header {
+                padding: 0.5rem;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+            }
+            
+            .subtitle {
+                font-size: 0.9rem;
+                margin-top: 0.3rem;
+            }
+            
             .container {
                 flex-direction: column;
+                height: auto;
+                position: relative;
             }
             
             .sidebar {
                 width: 100%;
-                max-height: 300px;
+                max-height: 40vh;
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                max-height: 180px;
+                transform: translateY(-100%);
+                transition: transform 0.3s ease-in-out;
+                border-bottom: 3px solid #2e5d34;
+            }
+            
+            .sidebar.visible {
+                transform: translateY(0);
+            }
+            
+            .map-container {
+                height: calc(100vh - 130px); /* Full height minus header and footer and toggle */
+                min-height: 400px;
+                z-index: 1;
+            }
+            
+            #map {
+                height: 100%;
+                min-height: 400px;
+            }
+            
+            .permit-info {
+                padding: 0.75rem;
+                margin-bottom: 0.75rem;
+            }
+            
+            .permit-info h3 {
+                margin-top: 0;
+                margin-bottom: 0.5rem;
+                font-size: 1rem;
+            }
+            
+            .permit-info p {
+                margin: 0.5rem 0;
+                font-size: 0.8rem;
+            }
+            
+            .trail-item {
+                padding: 0.5rem;
+                margin-bottom: 0.25rem;
+            }
+            
+            .trail-name {
+                font-size: 0.9rem;
+            }
+            
+            .trail-location {
+                font-size: 0.75rem;
+            }
+            
+            .mobile-toggle {
+                display: block;
+                position: absolute;
+                top: 0;
+                left: 50%;
+                transform: translateX(-50%);
+                background-color: #2e5d34;
+                color: white;
+                border: none;
+                padding: 5px 15px;
+                border-radius: 0 0 10px 10px;
+                font-size: 0.75rem;
+                z-index: 1001;
+                cursor: pointer;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            }
+        }
+        
+        /* Very small mobile devices */
+        @media screen and (max-width: 480px) {
+            .map-container {
+                height: calc(100vh - 120px);
+                min-height: 350px;
+            }
+            
+            .sidebar {
+                max-height: 70vh;
             }
         }
     </style>
@@ -211,6 +320,7 @@
         </aside>
         
         <div class="map-container">
+            <button class="mobile-toggle" onclick="toggleSidebar()">Show Trail List ▼</button>
             <div id="map"></div>
         </div>
     </div>
@@ -315,7 +425,7 @@
         
         // Custom icon for trail markers
         const trailIcon = L.icon({
-            iconUrl: 'https://cdn-icons-png.flaticon.com/512/9356/9356330.png',
+            iconUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTUiIGZpbGw9IiMyZTVkMzQiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMiIvPgo8cGF0aCBkPSJNMTAgMTJoMTJMMTYgMjBaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K',
             iconSize: [32, 32],
             iconAnchor: [16, 32],
             popupAnchor: [0, -32]
@@ -323,7 +433,7 @@
         
         // Add trail markers to the map
         const markers = [];
-        trails.forEach(trail => {
+        trails.forEach((trail, index) => {
             const marker = L.marker(trail.coords, {icon: trailIcon}).addTo(map);
             
             const popupContent = `
@@ -338,10 +448,12 @@
             
             marker.bindPopup(popupContent);
             
-            // Show popup on hover
-            marker.on('mouseover', function(e) {
-                this.openPopup();
-            });
+            // Show popup on hover (only on desktop)
+            if (window.innerWidth > 768) {
+                marker.on('mouseover', function(e) {
+                    this.openPopup();
+                });
+            }
             
             markers.push(marker);
         });
@@ -350,8 +462,43 @@
         function flyToTrail(index) {
             map.flyTo(trails[index].coords, 12);
             markers[index].openPopup();
+            
+            // If on mobile, hide the sidebar after selecting a trail
+            if (window.innerWidth <= 768) {
+                const sidebar = document.querySelector('.sidebar');
+                sidebar.classList.remove('visible');
+                document.querySelector('.mobile-toggle').textContent = 'Show Trail List ▼';
+            }
         }
+        
+        // Toggle sidebar visibility on mobile
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const toggleButton = document.querySelector('.mobile-toggle');
+            
+            if (sidebar.classList.contains('visible')) {
+                sidebar.classList.remove('visible');
+                toggleButton.textContent = 'Show Trail List ▼';
+            } else {
+                sidebar.classList.add('visible');
+                toggleButton.textContent = 'Hide Trail List ▲';
+            }
+        }
+        
+        // Force map to resize properly when window is resized
+        window.addEventListener('resize', function() {
+            setTimeout(function() {
+                map.invalidateSize();
+            }, 100);
+        });
+        
+        // Ensure map is properly sized after page load
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                map.invalidateSize();
+            }, 100);
+        });
     </script>
-<script defer src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015" integrity="sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ==" data-cf-beacon='{"rayId":"948a47efbe68d7a8","serverTiming":{"name":{"cfExtPri":true,"cfEdge":true,"cfOrigin":true,"cfL4":true,"cfSpeedBrain":true,"cfCacheStatus":true}},"version":"2025.5.0","token":"4edd5f8ec12a48cfa682ab8261b80a79"}' crossorigin="anonymous"></script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015" integrity="sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ==" data-cf-beacon='{"rayId":"9492b6d8dd6a72e0","serverTiming":{"name":{"cfExtPri":true,"cfEdge":true,"cfOrigin":true,"cfL4":true,"cfSpeedBrain":true,"cfCacheStatus":true}},"version":"2025.5.0","token":"4edd5f8ec12a48cfa682ab8261b80a79"}' crossorigin="anonymous"></script>
 </body>
 </html>
