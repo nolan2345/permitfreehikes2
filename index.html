@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Top 10 Permit-Free Hikes in California</title>
+    <title>Top 3 Permit-Free Hikes in California</title>
     
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" 
@@ -17,6 +17,10 @@
     
     <!-- Custom styles -->
     <style>
+        * {
+            box-sizing: border-box;
+        }
+        
         body {
             margin: 0;
             padding: 0;
@@ -34,6 +38,8 @@
             padding: 1rem;
             text-align: center;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            position: relative;
+            z-index: 1000;
         }
         
         h1 {
@@ -51,7 +57,7 @@
         .container {
             display: flex;
             flex: 1;
-            min-height: 0; /* Important for flex children */
+            min-height: 0;
         }
         
         .sidebar {
@@ -60,8 +66,7 @@
             padding: 1rem;
             box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
             overflow-y: auto;
-            flex-shrink: 0; /* Prevent sidebar from shrinking */
-            z-index: 1000; /* Ensure sidebar is above map on mobile */
+            flex-shrink: 0;
         }
         
         .permit-info {
@@ -107,13 +112,11 @@
         .map-container {
             flex: 1;
             position: relative;
-            min-height: 500px; /* Ensure minimum height on all devices */
         }
         
         #map {
             height: 100%;
             width: 100%;
-            min-height: 500px; /* Ensure map has minimum height */
         }
         
         .leaflet-popup-content {
@@ -141,65 +144,97 @@
             text-align: center;
             padding: 1rem;
             font-size: 0.9rem;
-            flex-shrink: 0; /* Prevent footer from shrinking */
+            flex-shrink: 0;
         }
-
+        
+        /* Mobile Toggle Button */
         .mobile-toggle {
             display: none;
+            position: fixed;
+            top: 120px;
+            right: 20px;
+            background-color: #2e5d34;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            z-index: 2000;
+            font-size: 14px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        .mobile-toggle:hover {
+            background-color: #1e4d24;
         }
         
         /* Mobile-specific styles */
         @media screen and (max-width: 768px) {
-            header {
-                padding: 0.5rem;
+            body {
+                height: 100vh;
+                overflow: hidden;
             }
             
             h1 {
-                font-size: 1.5rem;
+                font-size: 1.6rem;
             }
             
             .subtitle {
                 font-size: 0.9rem;
-                margin-top: 0.3rem;
+            }
+            
+            header {
+                padding: 0.8rem;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                z-index: 1000;
             }
             
             .container {
                 flex-direction: column;
-                height: auto;
+                margin-top: 100px; /* Account for fixed header */
+                height: calc(100vh - 100px);
                 position: relative;
             }
             
-            .sidebar {
-                width: 100%;
-                max-height: 40vh;
+            .map-container {
                 position: absolute;
                 top: 0;
                 left: 0;
                 right: 0;
-                max-height: 180px;
-                transform: translateY(-100%);
-                transition: transform 0.3s ease-in-out;
-                border-bottom: 3px solid #2e5d34;
-            }
-            
-            .sidebar.visible {
-                transform: translateY(0);
-            }
-            
-            .map-container {
-                height: calc(100vh - 130px); /* Full height minus header and footer and toggle */
-                min-height: 400px;
+                bottom: 0;
                 z-index: 1;
             }
             
-            #map {
-                height: 100%;
-                min-height: 400px;
+            .sidebar {
+                position: fixed;
+                top: 100px;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                width: 100%;
+                z-index: 1500;
+                background-color: rgba(240, 247, 233, 0.98);
+                backdrop-filter: blur(10px);
+                transform: translateY(100%);
+                transition: transform 0.3s ease;
+                border-radius: 20px 20px 0 0;
+                box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.2);
+            }
+            
+            .sidebar.show {
+                transform: translateY(0);
+            }
+            
+            .mobile-toggle {
+                display: block;
             }
             
             .permit-info {
-                padding: 0.75rem;
-                margin-bottom: 0.75rem;
+                margin-bottom: 0.5rem;
+                padding: 0.8rem;
             }
             
             .permit-info h3 {
@@ -209,62 +244,80 @@
             }
             
             .permit-info p {
-                margin: 0.5rem 0;
                 font-size: 0.8rem;
+                margin-bottom: 0.5rem;
             }
             
             .trail-item {
-                padding: 0.5rem;
-                margin-bottom: 0.25rem;
+                padding: 0.6rem;
+                margin-bottom: 0.3rem;
             }
             
             .trail-name {
-                font-size: 0.9rem;
+                font-size: 0.95rem;
             }
             
             .trail-location {
                 font-size: 0.75rem;
             }
             
-            .mobile-toggle {
-                display: block;
-                position: absolute;
-                top: 0;
-                left: 50%;
-                transform: translateX(-50%);
-                background-color: #2e5d34;
-                color: white;
-                border: none;
-                padding: 5px 15px;
-                border-radius: 0 0 10px 10px;
-                font-size: 0.75rem;
-                z-index: 1001;
-                cursor: pointer;
-                box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            /* Hide footer on mobile to save space */
+            footer {
+                display: none;
+            }
+            
+            /* Ensure map loads properly on mobile */
+            #map {
+                height: 100%;
+                min-height: 100%;
             }
         }
         
         /* Very small mobile devices */
         @media screen and (max-width: 480px) {
-            .map-container {
-                height: calc(100vh - 120px);
-                min-height: 350px;
+            h1 {
+                font-size: 1.4rem;
+            }
+            
+            .subtitle {
+                font-size: 0.8rem;
+            }
+            
+            header {
+                padding: 0.6rem;
+            }
+            
+            .container {
+                margin-top: 90px;
+                height: calc(100vh - 90px);
             }
             
             .sidebar {
-                max-height: 70vh;
+                top: 90px;
+            }
+            
+            .mobile-toggle {
+                top: 110px;
+                font-size: 12px;
+                padding: 8px 12px;
             }
         }
     </style>
 </head>
 <body>
     <header>
-        <h1>Top 10 Permit-Free Hikes in California</h1>
+        <h1>Top 3 Permit-Free Hikes in California</h1>
         <div class="subtitle">Explore the Golden State's beautiful wilderness without permits</div>
     </header>
     
+    <button class="mobile-toggle" onclick="toggleSidebar()">Show Trail List ▼</button>
+    
     <div class="container">
-        <aside class="sidebar">
+        <div class="map-container">
+            <div id="map"></div>
+        </div>
+        
+        <aside class="sidebar" id="sidebar">
             <div class="permit-info">
                 <h3>What are Permit-Free Hikes?</h3>
                 <p>Permit-free hikes are trails where no advance wilderness permit is required for day hiking. 
@@ -276,53 +329,20 @@
             
             <h3>Trail List</h3>
             <ul class="trail-list">
-                <li class="trail-item" onclick="flyToTrail(0)">
+                <li class="trail-item" onclick="flyToTrail(0); hideSidebarOnMobile();">
                     <div class="trail-name">Sespe Hot Springs Trail</div>
                     <div class="trail-location">Ojai, CA</div>
                 </li>
-                <li class="trail-item" onclick="flyToTrail(1)">
+                <li class="trail-item" onclick="flyToTrail(1); hideSidebarOnMobile();">
                     <div class="trail-name">Jennie and Weaver Lakes Loop</div>
                     <div class="trail-location">Hume, CA</div>
                 </li>
-                <li class="trail-item" onclick="flyToTrail(2)">
-                    <div class="trail-name">Granite Chief Trail</div>
-                    <div class="trail-location">Olympic Valley/Tahoe, CA</div>
-                </li>
-                <li class="trail-item" onclick="flyToTrail(3)">
-                    <div class="trail-name">Torrey Pines State Reserve Trails</div>
-                    <div class="trail-location">San Diego, CA</div>
-                </li>
-                <li class="trail-item" onclick="flyToTrail(4)">
-                    <div class="trail-name">Convict Lake Loop</div>
-                    <div class="trail-location">Mammoth Lakes, CA</div>
-                </li>
-                <li class="trail-item" onclick="flyToTrail(5)">
-                    <div class="trail-name">Heart Lake Trail</div>
-                    <div class="trail-location">Shingletown, CA</div>
-                </li>
-                <li class="trail-item" onclick="flyToTrail(6)">
-                    <div class="trail-name">Lands End Trail</div>
-                    <div class="trail-location">San Francisco, CA</div>
-                </li>
-                <li class="trail-item" onclick="flyToTrail(7)">
-                    <div class="trail-name">Moro Rock Trail</div>
-                    <div class="trail-location">Sequoia National Park, CA</div>
-                </li>
-                <li class="trail-item" onclick="flyToTrail(8)">
+                <li class="trail-item" onclick="flyToTrail(2); hideSidebarOnMobile();">
                     <div class="trail-name">Golden Trout Wilderness</div>
                     <div class="trail-location">Lone Pine, CA</div>
                 </li>
-                <li class="trail-item" onclick="flyToTrail(9)">
-                    <div class="trail-name">Tahoe Rim Trail</div>
-                    <div class="trail-location">Lake Tahoe, CA/NV</div>
-                </li>
             </ul>
         </aside>
-        
-        <div class="map-container">
-            <button class="mobile-toggle" onclick="toggleSidebar()">Show Trail List ▼</button>
-            <div id="map"></div>
-        </div>
     </div>
     
     <footer>
@@ -339,7 +359,7 @@
             maxZoom: 17
         }).addTo(map);
         
-        // Trail data
+        // Trail data - only the 3 requested trails
         const trails = [
             {
                 name: "Sespe Hot Springs Trail",
@@ -358,68 +378,12 @@
                 description: "This scenic loop in Jennie Lakes Wilderness connects two alpine lakes surrounded by pine forests. Features excellent swimming opportunities, mountain views, and plenty of backcountry camping spots. Popular for weekend backpacking trips."
             },
             {
-                name: "Granite Chief Trail",
-                coords: [39.1982, -120.2869],
-                distance: "6.5 miles",
-                elevation: "2,100 ft elevation gain",
-                difficulty: "Moderate to difficult",
-                description: "Starting near Olympic Valley, this trail climbs through forests to alpine meadows with spectacular views of Lake Tahoe. Wildflowers abound in summer, while fall brings vibrant colors. Connects to the Pacific Crest Trail."
-            },
-            {
-                name: "Torrey Pines State Reserve Trails",
-                coords: [32.9218, -117.2497],
-                distance: "2.3 miles loop",
-                elevation: "341 ft elevation gain",
-                difficulty: "Easy to moderate",
-                description: "Coastal trail system featuring rare Torrey pine trees, dramatic sandstone cliffs, and panoramic Pacific Ocean views. Multiple interconnected trails wind through unique coastal habitat with opportunities to see diverse wildlife and native plants."
-            },
-            {
-                name: "Convict Lake Loop",
-                coords: [37.5907, -118.8620],
-                distance: "2.5 miles",
-                elevation: "170 ft elevation gain",
-                difficulty: "Easy",
-                description: "A picturesque trail circling the crystal-clear waters of Convict Lake, set against the dramatic backdrop of Mount Morrison. Accessible year-round, this family-friendly trail offers stunning mountain reflections and fishing opportunities."
-            },
-            {
-                name: "Heart Lake Trail",
-                coords: [40.4519, -121.5745],
-                distance: "4.5 miles",
-                elevation: "1,017 ft elevation gain",
-                difficulty: "Moderate",
-                description: "Located in Lassen National Forest, this trail leads to a charming heart-shaped alpine lake. The path weaves through meadows and conifer forests, offering views of Lassen Peak along the way. Beautiful wildflowers bloom in summer."
-            },
-            {
-                name: "Lands End Trail",
-                coords: [37.7877, -122.5055],
-                distance: "3.4 miles loop",
-                elevation: "554 ft elevation gain",
-                difficulty: "Moderate",
-                description: "A scenic coastal trail at the northwestern corner of San Francisco with spectacular views of the Golden Gate Bridge, Marin Headlands, and Pacific Ocean. Features historic shipwreck sites, wildflower-covered hillsides, and the famous Sutro Baths ruins."
-            },
-            {
-                name: "Moro Rock Trail",
-                coords: [36.5547, -118.7661],
-                distance: "0.5 miles",
-                elevation: "300 ft elevation gain",
-                difficulty: "Moderate",
-                description: "A short but steep trail in Sequoia National Park leading to a granite dome with panoramic views of the Great Western Divide and Sierra Nevada mountains. The trail consists of 400 stairs cut into the rock face, making for an exhilarating climb."
-            },
-            {
                 name: "Golden Trout Wilderness (Cottonwood Lakes Trail)",
                 coords: [36.4499, -118.1700],
                 distance: "13 miles out and back",
                 elevation: "1,380 ft elevation gain",
                 difficulty: "Moderate",
                 description: "Starting from Horseshoe Meadows near Lone Pine, this trail leads to a series of alpine lakes in the high Sierra. The area is known for its native golden trout, stunning mountain scenery, and excellent backcountry camping opportunities."
-            },
-            {
-                name: "Tahoe Rim Trail (Tahoe Meadows to Spooner Summit)",
-                coords: [39.2650, -119.9283],
-                distance: "22.7 miles",
-                elevation: "3,303 ft elevation gain",
-                difficulty: "Moderate to difficult",
-                description: "A spectacular section of the 165-mile Tahoe Rim Trail that circles Lake Tahoe. This segment offers incredible views of the lake, traverses pine forests and flowering meadows, and features relatively gradual elevation changes, making it popular for multi-day hikes."
             }
         ];
         
@@ -448,12 +412,16 @@
             
             marker.bindPopup(popupContent);
             
-            // Show popup on hover (only on desktop)
-            if (window.innerWidth > 768) {
-                marker.on('mouseover', function(e) {
+            // Show popup on hover for desktop, click for mobile
+            marker.on('mouseover', function(e) {
+                if (window.innerWidth > 768) {
                     this.openPopup();
-                });
-            }
+                }
+            });
+            
+            marker.on('click', function(e) {
+                this.openPopup();
+            });
             
             markers.push(marker);
         });
@@ -462,26 +430,30 @@
         function flyToTrail(index) {
             map.flyTo(trails[index].coords, 12);
             markers[index].openPopup();
+        }
+        
+        // Mobile sidebar toggle functions
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const button = document.querySelector('.mobile-toggle');
             
-            // If on mobile, hide the sidebar after selecting a trail
-            if (window.innerWidth <= 768) {
-                const sidebar = document.querySelector('.sidebar');
-                sidebar.classList.remove('visible');
-                document.querySelector('.mobile-toggle').textContent = 'Show Trail List ▼';
+            if (sidebar.classList.contains('show')) {
+                sidebar.classList.remove('show');
+                button.innerHTML = 'Show Trail List ▼';
+            } else {
+                sidebar.classList.add('show');
+                button.innerHTML = 'Hide Trail List ▲';
+                // Scroll to top of sidebar
+                sidebar.scrollTop = 0;
             }
         }
         
-        // Toggle sidebar visibility on mobile
-        function toggleSidebar() {
-            const sidebar = document.querySelector('.sidebar');
-            const toggleButton = document.querySelector('.mobile-toggle');
-            
-            if (sidebar.classList.contains('visible')) {
-                sidebar.classList.remove('visible');
-                toggleButton.textContent = 'Show Trail List ▼';
-            } else {
-                sidebar.classList.add('visible');
-                toggleButton.textContent = 'Hide Trail List ▲';
+        function hideSidebarOnMobile() {
+            if (window.innerWidth <= 768) {
+                const sidebar = document.getElementById('sidebar');
+                const button = document.querySelector('.mobile-toggle');
+                sidebar.classList.remove('show');
+                button.innerHTML = 'Show Trail List ▼';
             }
         }
         
@@ -498,7 +470,22 @@
                 map.invalidateSize();
             }, 100);
         });
+        
+        // Close sidebar when clicking on map on mobile
+        document.addEventListener('click', function(e) {
+            if (window.innerWidth <= 768) {
+                const sidebar = document.getElementById('sidebar');
+                const button = document.querySelector('.mobile-toggle');
+                
+                // If sidebar is open and click is on map area
+                if (sidebar.classList.contains('show') && 
+                    !sidebar.contains(e.target) && 
+                    !button.contains(e.target)) {
+                    sidebar.classList.remove('show');
+                    button.innerHTML = 'Show Trail List ▼';
+                }
+            }
+        });
     </script>
-<script defer src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015" integrity="sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ==" data-cf-beacon='{"rayId":"9492b6d8dd6a72e0","serverTiming":{"name":{"cfExtPri":true,"cfEdge":true,"cfOrigin":true,"cfL4":true,"cfSpeedBrain":true,"cfCacheStatus":true}},"version":"2025.5.0","token":"4edd5f8ec12a48cfa682ab8261b80a79"}' crossorigin="anonymous"></script>
 </body>
 </html>
